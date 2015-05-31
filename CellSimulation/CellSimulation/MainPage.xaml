@@ -3,10 +3,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    d:DesignHeight="300" d:DesignWidth="400">
-
+    xmlns:xna="clr-namespace:Microsoft.Xna.Framework;assembly=Microsoft.Xna.Framework"
+    mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="400">
     <Grid x:Name="LayoutRoot" Background="White">
-
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="100" />
+        </Grid.RowDefinitions>
+        <DrawingSurface x:Name="drawingSurface" Draw="drawingSurface_Draw" SizeChanged="drawingSurface_SizeChanged" />
     </Grid>
 </UserControl>
