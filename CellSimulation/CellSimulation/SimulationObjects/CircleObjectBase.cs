@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 
 namespace CellSimulation
 {
@@ -28,6 +29,34 @@ namespace CellSimulation
             var totalRadius = obj.Radius + Radius;
             var distance = Coordinate2D.Distance(obj.Position, Position);
             return distance <= totalRadius;
+        }
+
+
+        public override bool AddObject(Object2DBase obj)
+        {
+            var result = base.AddObject(obj);
+            GenerateRadiusFromMass();
+            return result;
+        }
+
+        public override bool DropObject(Object2DBase obj)
+        {
+            var result = base.DropObject(obj);
+            GenerateRadiusFromMass();
+            return result;
+        }
+
+        public override void Move()
+        {
+            base.Move();
+        }
+
+        public override void BoundryCollision(Rect boundry)
+        {
+            if (Position.X <= boundry.Left || Position.X + Radius >= boundry.Right)
+                Velocity.X *= -1;
+            if (Position.Y <= boundry.Top || Position.Y + Radius >= boundry.Bottom)
+                Velocity.Y *= -1;
         }
     }
 }

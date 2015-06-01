@@ -5,11 +5,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:xna="clr-namespace:Microsoft.Xna.Framework;assembly=Microsoft.Xna.Framework"
     mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="400">
-    <Grid x:Name="LayoutRoot" Background="White">
+    <Grid x:Name="LayoutRoot" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="100" />
         </Grid.RowDefinitions>
-        <DrawingSurface x:Name="drawingSurface" Draw="drawingSurface_Draw" SizeChanged="drawingSurface_SizeChanged" />
+        <DrawingSurface Grid.RowSpan="99" Grid.ColumnSpan="99" x:Name="drawingSurface" Draw="drawingSurface_Draw" SizeChanged="drawingSurface_SizeChanged" Loaded="drawingSurface_Loaded" />
+        <Grid Grid.Row="1" Background="#AAFFFFFF">
+            <StackPanel  Orientation="Horizontal">
+                <Button x:Name="btnGenerate" Content="Generate" Margin="10" Width="100" Height="50" Click="btnGenerate_Click" />
+                <Button x:Name="btnStartStop" Content="Start" Margin="10" Width="100" Height="50" Click="btnStart_Click" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

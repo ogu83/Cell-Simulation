@@ -11,6 +11,7 @@ namespace CellSimulation
         public int Id { get; set; }
 
         public double Mass { get; set; }
+        public bool IsExhausted { get { return Mass <= 0; } }
         public Vector2D Velocity { get; set; }
         public Vector2D Accerelation { get; set; }
         public Coordinate2D Position { get; set; }
@@ -18,14 +19,14 @@ namespace CellSimulation
         public double Energy { get { return .5 * Mass * Math.Pow(Velocity.Length, 2); } }
         public Vector2D Momentum { get { return Velocity * Mass; } }
 
-        public bool AddObject(Object2DBase obj)
+        public virtual bool AddObject(Object2DBase obj)
         {
             Velocity = obj.Momentum / Mass;
             Mass += obj.Mass;
             obj.Mass = 0;
             return true;
         }
-        public bool DropObject(Object2DBase obj)
+        public virtual bool DropObject(Object2DBase obj)
         {
             if (obj.Mass > Mass)
                 return false;
@@ -64,5 +65,18 @@ namespace CellSimulation
             else
                 return null;
         }
+
+        public Object2DBase Clone()
+        {
+            return this.MemberwiseClone() as Object2DBase;
+        }
+
+        public virtual void Move()
+        {
+            Position.X += Velocity.X;
+            Position.Y += Velocity.Y;
+        }
+
+        public virtual void BoundryCollision(Rect boundry) { }
     }
 }

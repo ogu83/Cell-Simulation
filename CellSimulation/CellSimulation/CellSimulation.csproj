@@ -97,6 +97,7 @@
     <Compile Include="SimulationObjects\RectangleObjectBase.cs" />
     <Compile Include="SimulationObjects\SmartCell.cs" />
     <Compile Include="Analitycs\Vector2D.cs" />
+    <Compile Include="XnaObjects\SpriteObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
