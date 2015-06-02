@@ -16,18 +16,39 @@ namespace CellSimulation
         public Vector2D Accerelation { get; set; }
         public Coordinate2D Position { get; set; }
 
+        
+
         public double Energy { get { return .5 * Mass * Math.Pow(Velocity.Length, 2); } }
         public Vector2D Momentum { get { return Velocity * Mass; } }
 
         public virtual bool AddObject(Object2DBase obj)
         {
-            Velocity = obj.Momentum / Mass;
-            Mass += obj.Mass;
+            ////Momentum Preserving Universe
+            //Velocity = obj.Momentum / Mass;
+            //Mass += obj.Mass;
+
+            ////Energy Preserving Universe
+            //Velocity = Vector2D.Sqrt(Vector2D.Pow(obj.Velocity, 2) * obj.Mass / Mass);
+            var m1 = Mass;
+            var m2 = obj.Mass;
+            var m = m1 + m2;
+            var v1 = Velocity;
+            var v2 = obj.Velocity;
+            //var v = Vector2D.Sqrt((Vector2D.Pow(v1, 2) * m1 + Vector2D.Pow(v2, 2) * m2) / m);
+            ///Calculate Direction ov velocity
+            var vd = (v1 * m1 + v2 * m2) / m;
+            //if (vd.X < 0) v.X *= -1;
+            //if (vd.Y < 0) v.Y *= -1;
+            var v = vd;
+
+            Velocity = v;
+            Mass = m;
             obj.Mass = 0;
             return true;
         }
         public virtual bool DropObject(Object2DBase obj)
         {
+            //Momentum Preserving Universe
             if (obj.Mass > Mass)
                 return false;
             else if (obj.Energy > Energy)

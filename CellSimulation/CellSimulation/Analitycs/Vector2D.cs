@@ -27,5 +27,33 @@ namespace CellSimulation
         public static Vector2D operator /(Vector2D v1, double v) { return v1.Divide(v); }
 
         public Point Point { get { return new Point(X, Y); } }
+
+        public override bool Equals(object obj)
+        {
+            if (obj as Vector2D == null)
+                return false;
+            else
+                return (obj as Vector2D).X == X && (obj as Vector2D).X == Y;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[X:{0}|Y:{1}]|L:{2}", X, Y, Length);
+        }
+
+        public static Vector2D Pow(Vector2D vector, double scalar)
+        {
+            return new Vector2D(Math.Pow(vector.X, scalar), Math.Pow(vector.Y, scalar));
+        }
+
+        public static Vector2D Sqrt(Vector2D vector)
+        {
+            return new Vector2D(Math.Sqrt(vector.X), Math.Sqrt(vector.Y));
+        }
     }
 }

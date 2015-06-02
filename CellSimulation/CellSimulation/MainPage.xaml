@@ -4,17 +4,82 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:xna="clr-namespace:Microsoft.Xna.Framework;assembly=Microsoft.Xna.Framework"
-    mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="400">
+    mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="H1" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontFamily" Value="Segoe UI "/>
+        </Style>
+        <Style x:Key="C1" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontFamily" Value="Segoe UI Mono"/>
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Resources>
     <Grid x:Name="LayoutRoot" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition />
-            <RowDefinition Height="100" />
+            <RowDefinition Height="50" />
         </Grid.RowDefinitions>
-        <DrawingSurface Grid.RowSpan="99" Grid.ColumnSpan="99" x:Name="drawingSurface" Draw="drawingSurface_Draw" SizeChanged="drawingSurface_SizeChanged" Loaded="drawingSurface_Loaded" />
-        <Grid Grid.Row="1" Background="#AAFFFFFF">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="300" />
+        </Grid.ColumnDefinitions>
+        <DrawingSurface x:Name="drawingSurface" Grid.RowSpan="99" Grid.ColumnSpan="99" Draw="drawingSurface_Draw" SizeChanged="drawingSurface_SizeChanged" Loaded="drawingSurface_Loaded" />
+        <Grid x:Name="grdProperties" Grid.Row="0" Grid.Column="1" Background="#AAAAAAAA">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <StackPanel x:Name="grdUniverseProperties" Grid.Row="0">
+                <TextBlock Text="Universe Properties" Style="{StaticResource H1}" />
+                <TextBlock x:Name="txtCycle" Style="{StaticResource C1}" Text="Cycle :" />
+                <TextBlock x:Name="txtTotalMass" Style="{StaticResource C1}" Text="Mass :" />
+                <TextBlock x:Name="txtTotalEnergy" Style="{StaticResource C1}" Text="Energy :" />
+                <TextBlock x:Name="txtTotalSpeed" Style="{StaticResource C1}" Text="Speed :" />
+                <TextBlock x:Name="txtTotalMomentum" Style="{StaticResource C1}" Text="Momentum :" />
+                <TextBlock x:Name="txtTotalCells" Style="{StaticResource C1}" Text="Cell Count :" />
+            </StackPanel>
+            <Grid x:Name="grdCellProperties" Grid.Row="99">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Cells Properties" Style="{StaticResource H1}" />
+                <StackPanel Orientation="Vertical" Grid.Row="1">
+                    <ComboBox x:Name="comboFilter" SelectionChanged="comboFilter_SelectionChanged" />
+                </StackPanel>
+                <ListBox x:Name="lstCells" Grid.Row="2" Background="#99FFFFFF">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock>
+                                    <Run Text="Id: "/>
+                                    <Run Text="{Binding Id}" />
+                                </TextBlock>
+                                <TextBlock>
+                                    <Run Text="Mass: "/>
+                                    <Run Text="{Binding Mass}" />
+                                </TextBlock>
+                                <TextBlock>
+                                    <Run Text="Energy: "/>
+                                    <Run Text="{Binding Energy}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Grid>
+        <Grid x:Name="grdCommands" Grid.Row="1" Grid.ColumnSpan="99" Background="#AAAAAAAA">
             <StackPanel  Orientation="Horizontal">
-                <Button x:Name="btnGenerate" Content="Generate" Margin="10" Width="100" Height="50" Click="btnGenerate_Click" />
-                <Button x:Name="btnStartStop" Content="Start" Margin="10" Width="100" Height="50" Click="btnStart_Click" />
+                <Button x:Name="btnGenerate" Content="Generate" Margin="10" Padding="10,0" Click="btnGenerate_Click" />
+                <Button x:Name="btnStartStop" Content="Start" Margin="10" Padding="10,0" Click="btnStart_Click" />
             </StackPanel>
         </Grid>
     </Grid>

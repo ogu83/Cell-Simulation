@@ -15,19 +15,21 @@ namespace CellSimulation
 
         public double Radius { get; set; }
 
+        public Coordinate2D Center { get { return new Coordinate2D() { X = Position.X + Radius / 2, Y = Position.Y + Radius / 2 }; } }
+
         public void GenerateMassFromRadius()
         {
-            Mass = Math.PI * Math.Pow(Radius, 2);
+            Mass = Math.PI * Math.Pow(Radius / 2, 2);
         }
         public void GenerateRadiusFromMass()
         {
-            Radius = Math.Sqrt(Mass / Math.PI);
+            Radius = 2 * Math.Sqrt(Mass / Math.PI);
         }
 
         public bool IsColided(CircleObjectBase obj)
         {
-            var totalRadius = obj.Radius + Radius;
-            var distance = Coordinate2D.Distance(obj.Position, Position);
+            var totalRadius = obj.Radius / 2 + Radius / 2;
+            var distance = Coordinate2D.Distance(obj.Center, Center);
             return distance <= totalRadius;
         }
 

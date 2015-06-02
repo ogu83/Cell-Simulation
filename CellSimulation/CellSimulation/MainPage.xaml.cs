@@ -1,8 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Graphics;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CellSimulation
 {
@@ -16,6 +19,31 @@ namespace CellSimulation
         public MainPage()
         {
             InitializeComponent();
+
+            comboFilter.ItemsSource = Enum.GetNames(typeof(Cell.FilterType));
+            comboFilter.SelectedIndex = 0;
+        }
+
+        [Flags]
+        private enum SpriteStringAlignment { Center = 0, Left = 1, Right = 2, Top = 4, Bottom = 8 }
+
+        private void drawString(SpriteFont font, string text, Rectangle bounds, SpriteStringAlignment align, Color color)
+        {
+            Vector2 size = font.MeasureString(text);
+            Vector2 origin = size * 0.5f;
+            if (align.HasFlag(SpriteStringAlignment.Left))
+                origin.X += bounds.Width / 2 - size.X / 2;
+
+            if (align.HasFlag(SpriteStringAlignment.Right))
+                origin.X -= bounds.Width / 2 - size.X / 2;
+
+            if (align.HasFlag(SpriteStringAlignment.Top))
+                origin.Y += bounds.Height / 2 - size.Y / 2;
+
+            if (align.HasFlag(SpriteStringAlignment.Bottom))
+                origin.Y -= bounds.Height / 2 - size.Y / 2;
+
+            _spriteBatch.DrawString(font, text, new Vector2(bounds.X, bounds.Y), color, 0, origin, 1, SpriteEffects.None, 0);
         }
 
         private Texture2D createCircleTexture(GraphicsDevice g, int radius, Color color)
@@ -43,28 +71,53 @@ namespace CellSimulation
             return texture;
         }
 
-        private void generateSimulation()
+        private void fillUniverseProperties(RealtimeSimulation simulation)
+        {
+            if (simulation == null)
+                return;
+            txtCycle.Text = string.Format("Cycle : {0}", simulation.Cycle);
+            txtTotalMass.Text = string.Format("Mass : {0}", simulation.Mass);
+            txtTotalEnergy.Text = string.Format("Energy : {0}", simulation.Energy);
+            txtTotalSpeed.Text = string.Format("Velocity : {0}", simulation.Velocity);
+            txtTotalMomentum.Text = string.Format("Momentum : {0}", simulation.Momentum);
+            txtTotalCells.Text = string.Format("Cell Count : {0}", simulation.Cells.Count);
+        }
+
+        private void fillCellsProperties(RealtimeSimulation simulation)
+        {
+            if (simulation == null)
+                return;
+            lstCells.ItemsSource = null;
+            lstCells.ItemsSource = simulation.FilteredCells(
+                (Cell.FilterType)Enum.Parse(
+                    typeof(Cell.FilterType),
+                    comboFilter.SelectedItem.ToString(),
+                    true),
+                true).ToList();
+        }
+
+        private void generateSimulation(int cellCount, double maxVX, double maxVY, double maxRadius, double minRadius)
         {
             _simulation = new RealtimeSimulation();
-            _simulation.Boundry = new Rect(0, 0, drawingSurface.ActualWidth, ActualHeight);            
-            _simulation.AddRandomDummyCells(2000, new Vector2D(100, 100), 10);
-            //var cellCount = 5;
-            //for (int i = 0; i < cellCount; i++)
-            //{
-            //    var myCell = new Cell
-            //    {
-            //        Id = i,
-            //        Position = new Coordinate2D
-            //        {
-            //            X = drawingSurface.ActualWidth / (2 * (i + 1)),
-            //            Y = drawingSurface.ActualHeight / (2 * (i + 1))
-            //        },
-            //        Velocity = new Vector2D(-2, -2),
-            //        Radius = 50 / (i + 1),
-            //    };
-            //    myCell.GenerateMassFromRadius();
-            //    _simulation.Cells.Add(myCell);
-            //}
+            _simulation.OnCollision += _simulation_OnCollision;
+            _simulation.Boundry = new Rect(0, 0, drawingSurface.ActualWidth, ActualHeight);
+            _simulation.AddRandomDummyCells(cellCount, new Vector2D(maxVX, maxVY), maxRadius, minRadius);
+            fillUniverseProperties(_simulation);
+            fillCellsProperties(_simulation);
+        }
+
+        private void _simulation_OnCollision(RealtimeSimulation sender, Cell cell1, Cell cell2)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                fillUniverseProperties(_simulation);
+                fillCellsProperties(_simulation);
+            }));
+        }
+
+        private void comboFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            fillCellsProperties(_simulation);
         }
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
@@ -74,9 +127,19 @@ namespace CellSimulation
             _simulation.Paused = !_simulation.Paused;
             btnStartStop.Content = _simulation.Paused ? "Start" : "Pause";
         }
+
         private void btnGenerate_Click(object sender, RoutedEventArgs e)
         {
-            generateSimulation();
+            var generateDialog = new GenerateSimulationDialog();
+            generateDialog.Closed += generateDialog_Closed;
+            generateDialog.Show();
+
+        }
+        private void generateDialog_Closed(object sender, EventArgs e)
+        {
+            var d = sender as GenerateSimulationDialog;
+            if (d != null)
+                generateSimulation(d.DummyCellCount, d.MaxVX, d.MaxVY, d.MaxRadius, d.MinRadius);
         }
 
         private void drawingSurface_Loaded(object sender, RoutedEventArgs e)
@@ -107,6 +170,12 @@ namespace CellSimulation
                     _spriteBatch.Draw(c.Texture as Texture2D, new Vector2((float)c.Position.X, (float)c.Position.Y), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
                 }
                 _spriteBatch.End();
+                //if (!_simulation.Paused)
+                //    Dispatcher.BeginInvoke(new Action(() =>
+                //    {
+                //        fillUniverseProperties(_simulation);
+                //        fillCellsProperties(_simulation);
+                //    }));
                 _simulation.ExecuteNextCycle();
             }
             //VertexPositionNormalTexture[] vertices = new VertexPositionNormalTexture[]{
@@ -140,5 +209,7 @@ namespace CellSimulation
             //g.DrawPrimitives(PrimitiveType.TriangleList, 0, 1);
             e.InvalidateSurface();
         }
+
+
     }
 }
