@@ -103,6 +103,7 @@
     <Compile Include="SimulationObjects\SmartCell.cs" />
     <Compile Include="Analitycs\Vector2D.cs" />
     <Compile Include="XnaObjects\SpriteObject.cs" />
+    <Compile Include="XnaObjects\XNAHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -120,6 +121,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AppManifest.xml" />
+    <Content Include="SegoeUIMono.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

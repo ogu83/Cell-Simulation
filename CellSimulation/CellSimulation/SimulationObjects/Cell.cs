@@ -1,6 +1,6 @@
 ﻿
 namespace CellSimulation
-{   
+{
     public class Cell : CircleObjectBase
     {
         public enum FilterType { Mass, Energy, Momentum, Velocity }
@@ -19,18 +19,24 @@ namespace CellSimulation
         public override bool AddObject(Object2DBase obj)
         {
             var result = base.AddObject(obj);
-            Texture = null;
+            clearTextures();
             return result;
         }
 
         public override bool DropObject(Object2DBase obj)
         {
             var result = base.DropObject(obj);
-            Texture = null;
+            clearTextures();
             return result;
         }
 
-        public object Texture { get; set; }
+        private void clearTextures()
+        {
+            Texture = null;
+            SelectedTexture = null;
+        }
 
+        public object Texture { get; set; }
+        public object SelectedTexture { get; set; }
     }
 }

@@ -24,53 +24,6 @@ namespace CellSimulation
             comboFilter.SelectedIndex = 0;
         }
 
-        [Flags]
-        private enum SpriteStringAlignment { Center = 0, Left = 1, Right = 2, Top = 4, Bottom = 8 }
-
-        private void drawString(SpriteFont font, string text, Rectangle bounds, SpriteStringAlignment align, Color color)
-        {
-            Vector2 size = font.MeasureString(text);
-            Vector2 origin = size * 0.5f;
-            if (align.HasFlag(SpriteStringAlignment.Left))
-                origin.X += bounds.Width / 2 - size.X / 2;
-
-            if (align.HasFlag(SpriteStringAlignment.Right))
-                origin.X -= bounds.Width / 2 - size.X / 2;
-
-            if (align.HasFlag(SpriteStringAlignment.Top))
-                origin.Y += bounds.Height / 2 - size.Y / 2;
-
-            if (align.HasFlag(SpriteStringAlignment.Bottom))
-                origin.Y -= bounds.Height / 2 - size.Y / 2;
-
-            _spriteBatch.DrawString(font, text, new Vector2(bounds.X, bounds.Y), color, 0, origin, 1, SpriteEffects.None, 0);
-        }
-
-        private Texture2D createCircleTexture(GraphicsDevice g, int radius, Color color)
-        {
-            var texture = new Texture2D(g, radius, radius);
-            var colorData = new Color[radius * radius];
-
-            var diam = radius / 2f;
-            var diamsq = diam * diam;
-
-            for (int x = 0; x < radius; x++)
-            {
-                for (int y = 0; y < radius; y++)
-                {
-                    int index = x * radius + y;
-                    var pos = new Vector2(x - diam, y - diam);
-                    if (pos.LengthSquared() <= diamsq)
-                        colorData[index] = color;
-                    else
-                        colorData[index] = Color.Transparent;
-                }
-            }
-
-            texture.SetData(colorData);
-            return texture;
-        }
-
         private void fillUniverseProperties(RealtimeSimulation simulation)
         {
             if (simulation == null)
@@ -88,12 +41,17 @@ namespace CellSimulation
             if (simulation == null)
                 return;
             lstCells.ItemsSource = null;
-            lstCells.ItemsSource = simulation.FilteredCells(
+            var filteredCells = simulation.FilteredCells(
                 (Cell.FilterType)Enum.Parse(
                     typeof(Cell.FilterType),
                     comboFilter.SelectedItem.ToString(),
                     true),
                 true).ToList();
+            lstCells.ItemsSource = filteredCells;
+            if (!filteredCells.Contains(simulation.Selected))
+                simulation.Selected = null;
+            else
+                lstCells.SelectedItem = simulation.Selected;
         }
 
         private void generateSimulation(int cellCount, double maxVX, double maxVY, double maxRadius, double minRadius)
@@ -105,7 +63,6 @@ namespace CellSimulation
             fillUniverseProperties(_simulation);
             fillCellsProperties(_simulation);
         }
-
         private void _simulation_OnCollision(RealtimeSimulation sender, Cell cell1, Cell cell2)
         {
             Dispatcher.BeginInvoke(new Action(() =>
@@ -118,6 +75,13 @@ namespace CellSimulation
         private void comboFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             fillCellsProperties(_simulation);
+        }
+
+        private void lstCells_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems != null)
+                if (e.AddedItems.Count > 0)
+                    _simulation.Selected = e.AddedItems[0] as Cell;
         }
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
@@ -145,7 +109,10 @@ namespace CellSimulation
         private void drawingSurface_Loaded(object sender, RoutedEventArgs e)
         {
             _graphicsDevice = GraphicsDeviceManager.Current.GraphicsDevice;
-            _spriteBatch = new SpriteBatch(_graphicsDevice);
+            if (_graphicsDevice != null)
+                _spriteBatch = new SpriteBatch(_graphicsDevice);
+            else
+                MessageBox.Show("Please allow 3D Graphics from Silverlight Properties (opens with right click)", "3D Rendering Disabled", MessageBoxButton.OK);
         }
 
         private void drawingSurface_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
@@ -166,16 +133,20 @@ namespace CellSimulation
                 foreach (var c in _simulation.Cells)
                 {
                     if (c.Texture == null)
-                        c.Texture = createCircleTexture(_graphicsDevice, (int)c.Radius, new Color(255, 0, 0));
+                        c.Texture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius, new Color(255, 255, 255));
+                    if (c.SelectedTexture == null)
+                        c.SelectedTexture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius + 10, new Color(255, 0, 0));
+
+                    if (_simulation.Selected == c)
+                        _spriteBatch.Draw(c.SelectedTexture as Texture2D, new Vector2((float)c.Position.X - 5, (float)c.Position.Y - 5), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
                     _spriteBatch.Draw(c.Texture as Texture2D, new Vector2((float)c.Position.X, (float)c.Position.Y), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
+
+                    //var font = XNAHelper.CreateSpriteFont();
+                    //XNAHelper.DrawString(_spriteBatch, font, c.Id.ToString(),
+                    //    new Rectangle((int)c.Position.X, (int)c.Position.Y, (int)c.Radius + (int)c.Position.X, (int)c.Radius + (int)c.Position.Y), XNAHelper.SpriteStringAlignment.Center,
+                    //    new Color(0, 0, 0));
                 }
                 _spriteBatch.End();
-                //if (!_simulation.Paused)
-                //    Dispatcher.BeginInvoke(new Action(() =>
-                //    {
-                //        fillUniverseProperties(_simulation);
-                //        fillCellsProperties(_simulation);
-                //    }));
                 _simulation.ExecuteNextCycle();
             }
             //VertexPositionNormalTexture[] vertices = new VertexPositionNormalTexture[]{
@@ -209,7 +180,5 @@ namespace CellSimulation
             //g.DrawPrimitives(PrimitiveType.TriangleList, 0, 1);
             e.InvalidateSurface();
         }
-
-
     }
 }
