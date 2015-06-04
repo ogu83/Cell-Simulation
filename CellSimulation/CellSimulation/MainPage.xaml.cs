@@ -33,7 +33,12 @@ namespace CellSimulation
             txtTotalEnergy.Text = string.Format("Energy : {0}", simulation.Energy);
             txtTotalSpeed.Text = string.Format("Velocity : {0}", simulation.Velocity);
             txtTotalMomentum.Text = string.Format("Momentum : {0}", simulation.Momentum);
-            txtTotalCells.Text = string.Format("Cell Count : {0}", simulation.Cells.Count);
+            txtTotalCells.Text = string.Format("Cells : {0}", simulation.Cells.Count);
+            txtTotalDummyCells.Text = string.Format("Smarts : {0}", simulation.SmartCellCount);
+            txtTotalSmartCells.Text = string.Format("Dummys : {0}", simulation.DummyCellCount);
+            txtSmartCellCharacters.Text = "";
+            foreach (var c in Enum.GetValues(typeof(SmartCell.CharacterType)).Cast<SmartCell.CharacterType>())
+                txtSmartCellCharacters.Text += Enum.GetName(typeof(SmartCell.CharacterType), c) + " : " + simulation.SmartCellCountWithCharacter(c) + "\r\n";
         }
 
         private void fillCellsProperties(RealtimeSimulation simulation)
@@ -41,7 +46,7 @@ namespace CellSimulation
             if (simulation == null)
                 return;
             lstCells.ItemsSource = null;
-            var filteredCells = simulation.FilteredCells(
+            var filteredCells = simulation.SortedCells(
                 (Cell.FilterType)Enum.Parse(
                     typeof(Cell.FilterType),
                     comboFilter.SelectedItem.ToString(),
@@ -54,14 +59,13 @@ namespace CellSimulation
                 lstCells.SelectedItem = simulation.Selected;
         }
 
-        private void generateSimulation(int cellCount, double maxVX, double maxVY, double maxRadius, double minRadius)
+        private void _simulation_OnObjectAdded(RealtimeSimulation sender, Cell cell)
         {
-            _simulation = new RealtimeSimulation();
-            _simulation.OnCollision += _simulation_OnCollision;
-            _simulation.Boundry = new Rect(0, 0, drawingSurface.ActualWidth, ActualHeight);
-            _simulation.AddRandomDummyCells(cellCount, new Vector2D(maxVX, maxVY), maxRadius, minRadius);
-            fillUniverseProperties(_simulation);
-            fillCellsProperties(_simulation);
+            //Dispatcher.BeginInvoke(new Action(() =>
+            //{
+            //    fillUniverseProperties(_simulation);
+            //    fillCellsProperties(_simulation);
+            //}));
         }
         private void _simulation_OnCollision(RealtimeSimulation sender, Cell cell1, Cell cell2)
         {
@@ -70,6 +74,81 @@ namespace CellSimulation
                 fillUniverseProperties(_simulation);
                 fillCellsProperties(_simulation);
             }));
+        }
+
+        private void UserControl_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (_simulation.CancelationToken)
+                return;
+            if (_simulation == null)
+                return;
+
+            switch (e.Key)
+            {
+                case System.Windows.Input.Key.Left:
+                    moveSelectedCellLeft();
+                    break;
+                case System.Windows.Input.Key.Right:
+                    moveSelectedCellRight();
+                    break;
+                case System.Windows.Input.Key.Up:
+                    moveSelectedCellUp();
+                    break;
+                case System.Windows.Input.Key.Down:
+                    moveSelectedCellDown();
+                    break;
+                default:
+                    break;
+            }
+        }
+        private void UserControl_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+
+        }
+
+        private void moveSelectedCellLeft()
+        {
+            var myCell = _simulation.Selected;
+            if (myCell == null) return;
+            var dropCell = new Cell() { Mass = myCell.Mass * .01, Velocity = new Vector2D(5, 0) };
+            dropCell.GenerateRadiusFromMass();
+            if (dropCell.Radius < 1 || myCell.Radius < 1) return;
+            dropCell.Position = new Coordinate2D { X = myCell.Position.X + myCell.Radius + 1, Y = myCell.Center.Y };
+            myCell.DropObject(dropCell);
+            _simulation.AddCell(dropCell);
+        }
+        private void moveSelectedCellRight()
+        {
+            var myCell = _simulation.Selected;
+            if (myCell == null) return;
+            var dropCell = new Cell() { Mass = myCell.Mass * .01, Velocity = new Vector2D(-5, 0) };
+            dropCell.GenerateRadiusFromMass();
+            if (dropCell.Radius < 1 || myCell.Radius < 1) return;
+            dropCell.Position = new Coordinate2D { X = myCell.Position.X - myCell.Radius - 1, Y = myCell.Center.Y };
+            myCell.DropObject(dropCell);
+            _simulation.AddCell(dropCell);
+        }
+        private void moveSelectedCellUp()
+        {
+            var myCell = _simulation.Selected;
+            if (myCell == null) return;
+            var dropCell = new Cell() { Mass = myCell.Mass * .01, Velocity = new Vector2D(0, 5) };
+            dropCell.GenerateRadiusFromMass();
+            if (dropCell.Radius < 1 || myCell.Radius < 1) return;
+            dropCell.Position = new Coordinate2D { Y = myCell.Position.Y + myCell.Radius + 1, X = myCell.Center.X };
+            myCell.DropObject(dropCell);
+            _simulation.AddCell(dropCell);
+        }
+        private void moveSelectedCellDown()
+        {
+            var myCell = _simulation.Selected;
+            if (myCell == null) return;
+            var dropCell = new Cell() { Mass = myCell.Mass * .01, Velocity = new Vector2D(0, -5) };
+            dropCell.GenerateRadiusFromMass();
+            if (dropCell.Radius < 1 || myCell.Radius < 1) return;
+            dropCell.Position = new Coordinate2D { Y = myCell.Position.Y - myCell.Radius - 1, X = myCell.Center.X };
+            myCell.DropObject(dropCell);
+            _simulation.AddCell(dropCell);
         }
 
         private void comboFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -97,13 +176,24 @@ namespace CellSimulation
             var generateDialog = new GenerateSimulationDialog();
             generateDialog.Closed += generateDialog_Closed;
             generateDialog.Show();
-
         }
         private void generateDialog_Closed(object sender, EventArgs e)
         {
             var d = sender as GenerateSimulationDialog;
             if (d != null)
-                generateSimulation(d.DummyCellCount, d.MaxVX, d.MaxVY, d.MaxRadius, d.MinRadius);
+                if (d.DialogResult.GetValueOrDefault())
+                {
+                    _simulation = RealtimeSimulation.GenerateSimulation(
+                        d.StopWhenCompleted, d.TotalCycle,
+                        drawingSurface.ActualWidth, drawingSurface.ActualHeight,
+                        d.DummyCellCount, d.MaxVX, d.MaxVY, d.MaxRadius, d.MinRadius,
+                        d.SmartCellCount, d.SMaxVX, d.SMaxVY, d.SMaxRadius, d.SMinRadius
+                    );
+                    _simulation.OnCollision += _simulation_OnCollision;
+                    _simulation.OnObjectAdded += _simulation_OnObjectAdded;
+                    fillUniverseProperties(_simulation);
+                    fillCellsProperties(_simulation);
+                }
         }
 
         private void drawingSurface_Loaded(object sender, RoutedEventArgs e)
@@ -129,17 +219,23 @@ namespace CellSimulation
             _graphicsDevice.RasterizerState = RasterizerState.CullNone;
             if (_simulation != null)
             {
+                if (_simulation.CancelationToken)
+                    return;
+
+                //_simulation.CancelationToken = true;
                 _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
                 foreach (var c in _simulation.Cells)
                 {
                     if (c.Texture == null)
-                        c.Texture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius, new Color(255, 255, 255));
+                        c.Texture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius, new Color(c.RGB()[0], c.RGB()[1], c.RGB()[2]));
                     if (c.SelectedTexture == null)
                         c.SelectedTexture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius + 10, new Color(255, 0, 0));
 
                     if (_simulation.Selected == c)
-                        _spriteBatch.Draw(c.SelectedTexture as Texture2D, new Vector2((float)c.Position.X - 5, (float)c.Position.Y - 5), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
-                    _spriteBatch.Draw(c.Texture as Texture2D, new Vector2((float)c.Position.X, (float)c.Position.Y), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
+                        if (c.SelectedTexture != null)
+                            _spriteBatch.Draw(c.SelectedTexture as Texture2D, new Vector2((float)c.Position.X - 5, (float)c.Position.Y - 5), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
+                    if (c.Texture != null)
+                        _spriteBatch.Draw(c.Texture as Texture2D, new Vector2((float)c.Position.X, (float)c.Position.Y), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
 
                     //var font = XNAHelper.CreateSpriteFont();
                     //XNAHelper.DrawString(_spriteBatch, font, c.Id.ToString(),
@@ -148,7 +244,10 @@ namespace CellSimulation
                 }
                 _spriteBatch.End();
                 _simulation.ExecuteNextCycle();
+                //_simulation.CancelationToken = false;
             }
+
+
             //VertexPositionNormalTexture[] vertices = new VertexPositionNormalTexture[]{
             //    new VertexPositionNormalTexture(new Vector3(-1, -1, 0),
             //        Vector3.Forward,Vector2.Zero),

@@ -4,7 +4,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:xna="clr-namespace:Microsoft.Xna.Framework;assembly=Microsoft.Xna.Framework"
-    mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800">
+    mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800"
+    KeyDown="UserControl_KeyDown" KeyUp="UserControl_KeyUp">
     <UserControl.Resources>
         <Style x:Key="H1" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14"/>
@@ -42,7 +43,10 @@
                 <TextBlock x:Name="txtTotalEnergy" Style="{StaticResource C1}" Text="Energy :" />
                 <TextBlock x:Name="txtTotalSpeed" Style="{StaticResource C1}" Text="Speed :" />
                 <TextBlock x:Name="txtTotalMomentum" Style="{StaticResource C1}" Text="Momentum :" />
-                <TextBlock x:Name="txtTotalCells" Style="{StaticResource C1}" Text="Cell Count :" />
+                <TextBlock x:Name="txtTotalCells" Style="{StaticResource C1}" Text="Cell :" />
+                <TextBlock x:Name="txtTotalDummyCells" Style="{StaticResource C1}" Text="Dummy Cell :" />
+                <TextBlock x:Name="txtTotalSmartCells" Style="{StaticResource C1}" Text="Smart Cell  :" />
+                <TextBlock x:Name="txtSmartCellCharacters" Style="{StaticResource C1}" Text="Smart Cell  :" />
             </StackPanel>
             <Grid x:Name="grdCellProperties" Grid.Row="99">
                 <Grid.RowDefinitions>
@@ -54,7 +58,7 @@
                 <StackPanel Orientation="Vertical" Grid.Row="1">
                     <ComboBox x:Name="comboFilter" SelectionChanged="comboFilter_SelectionChanged" />
                 </StackPanel>
-                <ListBox x:Name="lstCells" Grid.Row="2" Background="#99FFFFFF" SelectionChanged="lstCells_SelectionChanged">
+                <ListBox x:Name="lstCells" Grid.Row="2" Background="Transparent" SelectionChanged="lstCells_SelectionChanged">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Vertical">
@@ -69,6 +73,10 @@
                                 <TextBlock>
                                     <Run Text="Energy: "/>
                                     <Run Text="{Binding Energy}" />
+                                </TextBlock>
+                                <TextBlock>
+                                    <Run Text="Character: "/>
+                                    <Run Text="{Binding CharacterStr}" />
                                 </TextBlock>
                             </StackPanel>
                         </DataTemplate>

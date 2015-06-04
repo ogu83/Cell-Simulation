@@ -38,5 +38,9 @@ namespace CellSimulation
 
         public object Texture { get; set; }
         public object SelectedTexture { get; set; }
+
+        public virtual int[] RGB() { return new int[] { 255, 255, 255 }; }
+
+        public virtual string CharacterStr { get { return "Dummy"; } }
     }
 }

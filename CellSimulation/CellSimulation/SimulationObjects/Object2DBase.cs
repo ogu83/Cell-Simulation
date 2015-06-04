@@ -16,8 +16,6 @@ namespace CellSimulation
         public Vector2D Accerelation { get; set; }
         public Coordinate2D Position { get; set; }
 
-        
-
         public double Energy { get { return .5 * Mass * Math.Pow(Velocity.Length, 2); } }
         public Vector2D Momentum { get { return Velocity * Mass; } }
 
@@ -51,12 +49,18 @@ namespace CellSimulation
             //Momentum Preserving Universe
             if (obj.Mass > Mass)
                 return false;
-            else if (obj.Energy > Energy)
-                return false;
+            //else if (obj.Energy > Energy)
+            //    return false;
             else
             {
-                Velocity = obj.Momentum / Mass;
-                Mass -= obj.Mass;
+                var m = Mass;
+                var v = Velocity;
+                var m2 = obj.Mass;
+                var v2 = obj.Velocity;
+                var m1 = m - m2;
+                var v1 = (v * m - v2 * m2) / m1;
+                Velocity = v1;
+                Mass = m1;
                 return true;
             }
         }
