@@ -96,10 +96,13 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SimulationObjects\Cycle.cs" />
     <Compile Include="SimulationObjects\Object2DBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimulationObjects\RealtimeSimulation.cs" />
     <Compile Include="SimulationObjects\RectangleObjectBase.cs" />
+    <Compile Include="SimulationObjects\Simulation.cs" />
+    <Compile Include="SimulationObjects\SimulationBatch.cs" />
     <Compile Include="SimulationObjects\SmartCell.cs" />
     <Compile Include="Analitycs\Vector2D.cs" />
     <Compile Include="XnaObjects\SpriteObject.cs" />

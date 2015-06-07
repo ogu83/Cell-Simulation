@@ -93,7 +93,14 @@ namespace CellSimulation
 
         public Object2DBase Clone()
         {
-            return this.MemberwiseClone() as Object2DBase;
+            var c = (Object2DBase)MemberwiseClone();
+            if (Velocity != null)
+                c.Velocity = Velocity.Clone();
+            if (Accerelation != null)
+                c.Accerelation = Accerelation.Clone();
+            if (Position != null)
+                c.Position = Position.Clone();
+            return c;
         }
 
         public virtual void Move()

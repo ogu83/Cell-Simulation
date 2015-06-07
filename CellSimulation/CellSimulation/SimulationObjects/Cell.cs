@@ -42,5 +42,10 @@ namespace CellSimulation
         public virtual int[] RGB() { return new int[] { 255, 255, 255 }; }
 
         public virtual string CharacterStr { get { return "Dummy"; } }
+
+        public new Cell Clone()
+        {
+            return (Cell)base.Clone();
+        }
     }
 }

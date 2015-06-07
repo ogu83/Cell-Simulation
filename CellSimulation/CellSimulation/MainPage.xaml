@@ -24,7 +24,7 @@
     <Grid x:Name="LayoutRoot" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition />
-            <RowDefinition Height="50" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -85,9 +85,14 @@
             </Grid>
         </Grid>
         <Grid x:Name="grdCommands" Grid.Row="1" Grid.ColumnSpan="99" Background="#AAAAAAAA">
-            <StackPanel  Orientation="Horizontal">
-                <Button x:Name="btnGenerate" Content="Generate" Margin="10" Padding="10,0" Click="btnGenerate_Click" />
-                <Button x:Name="btnStartStop" Content="Start" Margin="10" Padding="10,0" Click="btnStart_Click" />
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Height="40">
+                    <Button x:Name="btnGenerate" Content="Generate" Margin="5" Padding="10,0" Click="btnGenerate_Click" />
+                    <Button x:Name="btnStartStop" Content="Start" Margin="5" Padding="10,0" Click="btnStart_Click" />
+                    <Button x:Name="btnStartStopMemory" Content="Start Memory" Margin="5" Padding="10,0" Click="btnStartMemory_Click" />
+                </StackPanel>
+                <Slider x:Name="sldMemory" Height="20" Margin="5" ValueChanged="sldMemory_ValueChanged" />
+                <ProgressBar x:Name="barMemory"  Height="20" Margin="5" />
             </StackPanel>
         </Grid>
     </Grid>

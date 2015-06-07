@@ -1,0 +1,109 @@
+﻿<controls:ChildWindow x:Class="CellSimulation.GenerateSimulationDialog"
+           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+           xmlns:controls="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls"
+           Width="640" Height="480" Title="Generate Simulation Dialog">
+    <Grid x:Name="LayoutRoot" Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <controls:TabControl>
+            <controls:TabControl.Items>
+                <controls:TabItem Header="General Properties">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Margin="5">
+                            <TextBlock Text="TotalCycle" />
+                            <TextBox Text="{Binding TotalCycle,Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Margin="5">
+                            <TextBlock Text="Conditions" />
+                            <CheckBox IsChecked="{Binding StopWhenCompleted,Mode=TwoWay}" Content="Stop When Completed"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Margin="5">
+                            <TextBlock Text="Run In" />
+                            <RadioButton GroupName="g1" Margin="2" Content="Screen" x:Name="chkRunInScreen" Tag="0" Checked="chkRunInChecked" IsChecked="true"/>
+                            <RadioButton GroupName="g1" Margin="2" Content="Memory" x:Name="chkRunInMemory" Tag="1" Checked="chkRunInChecked" />
+                            <RadioButton GroupName="g1" Margin="2" Content="Server" x:Name="chkRunInServer" Tag="2" Checked="chkRunInChecked" />
+                        </StackPanel>
+                    </Grid>                    
+                </controls:TabItem>
+                <controls:TabItem Header="Dummy Cell Properties">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="" />
+                        <StackPanel Grid.Row="1" Margin="5">
+                            <TextBlock Text="Dummy Cell Count" />
+                            <TextBox Text="{Binding DummyCellCount,Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Margin="5">
+                            <TextBlock Text="Min Radius" />
+                            <TextBox Text="{Binding MinRadius,Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Margin="5">
+                            <TextBlock Text="Max Radius" />
+                            <TextBox Text="{Binding MaxRadius,Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Margin="5">
+                            <TextBlock Text="Max Velocity X,Y" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Text="{Binding MaxVX,Mode=TwoWay}" Width="100" Margin="0,0,5,0" />
+                                <TextBlock Text=" , " />
+                                <TextBox Text="{Binding MaxVY,Mode=TwoWay}" Width="100" Margin="0,0,5,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </controls:TabItem>
+                <controls:TabItem Header="Smart Cell Properties">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="" />
+                        <StackPanel Grid.Row="1" Margin="5">
+                            <TextBlock Text="Smart Cell Count" />
+                            <TextBox Text="{Binding SmartCellCount,Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Margin="5">
+                            <TextBlock Text="Min Radius" />
+                            <TextBox Text="{Binding SMinRadius,Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Margin="5">
+                            <TextBlock Text="Max Radius" />
+                            <TextBox Text="{Binding SMaxRadius,Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Margin="5">
+                            <TextBlock Text="Max Velocity X,Y" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Text="{Binding SMaxVX,Mode=TwoWay}" Width="100" Margin="0,0,5,0" />
+                                <TextBlock Text=" , " />
+                                <TextBox Text="{Binding SMaxVY,Mode=TwoWay}" Width="100" Margin="0,0,5,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </controls:TabItem>
+            </controls:TabControl.Items>
+        </controls:TabControl>
+        <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click" Width="75" Height="23" HorizontalAlignment="Right" Margin="0,12,0,0" Grid.Row="1" />
+        <Button x:Name="OKButton" Content="OK" Click="OKButton_Click" Width="75" Height="23" HorizontalAlignment="Right" Margin="0,12,79,0" Grid.Row="1" />
+    </Grid>
+</controls:ChildWindow>

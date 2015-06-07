@@ -55,5 +55,10 @@ namespace CellSimulation
         {
             return new Vector2D(Math.Sqrt(vector.X), Math.Sqrt(vector.Y));
         }
+
+        public Vector2D Clone()
+        {
+            return (Vector2D)MemberwiseClone();
+        }
     }
 }

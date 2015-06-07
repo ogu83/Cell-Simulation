@@ -33,7 +33,6 @@ namespace CellSimulation
             return distance <= totalRadius;
         }
 
-
         public override bool AddObject(Object2DBase obj)
         {
             var result = base.AddObject(obj);
@@ -59,6 +58,11 @@ namespace CellSimulation
                 Velocity.X *= -1;
             if (Position.Y <= boundry.Top || Position.Y + Radius >= boundry.Bottom)
                 Velocity.Y *= -1;
+        }
+
+        public new CircleObjectBase Clone()
+        {
+            return (CircleObjectBase)base.Clone();
         }
     }
 }

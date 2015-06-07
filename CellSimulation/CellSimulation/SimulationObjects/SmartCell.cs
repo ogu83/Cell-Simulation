@@ -1,13 +1,4 @@
 ﻿using System;
-using System.Net;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Ink;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 using System.Linq;
 
 namespace CellSimulation
@@ -16,7 +7,7 @@ namespace CellSimulation
     {
         private const double massDivisor = .01;
         private const double velocityMultiplier = 10;
-        private const double minMassDivisor = 4;
+        private const double minMassDivisor = 2;
         private const double minVelocityThresold = 0.01;
 
         public enum CharacterType
@@ -27,19 +18,10 @@ namespace CellSimulation
             NoSpeed,
             CatchSmallAndEvadeBig,
             CatchNearestAndEvadeBig,
-            //CatchSmart,
-            //EvadeSmart,
-            //CatchOnlyDummySmall,
-            //EvadeOnlyDummyBig,
-
-            //MaximizeVelocity,
-            //MaximizeMomentum,
-            //PreserveMass,
-            //PreserveVelocity,
-            //PreserveMomentum,
+            CatchSlow,
+            CatchFast,
+            FollowBig,
         }
-
-
 
         public SmartCell() { }
         public SmartCell(CharacterType character)
@@ -47,13 +29,19 @@ namespace CellSimulation
         {
             Character = character;
             if (Character == CharacterType.CatchSmallAndEvadeBig)
-                SubCharacter = CharacterType.CatchSmall;
+                subCharacter = CharacterType.CatchSmall;
             if (Character == CharacterType.CatchNearestAndEvadeBig)
-                SubCharacter = CharacterType.CatchNearest;
+                subCharacter = CharacterType.CatchNearest;
         }
 
         public CharacterType Character { get; set; }
-        private CharacterType SubCharacter { get; set; }
+        private CharacterType subCharacter { get; set; }
+
+        private void caculateDropCellPosition(Cell dropCell)
+        {
+            var pos = Center + dropCell.Velocity.UnitVector * ((Radius + 2.01 * dropCell.Radius + 4) / 2);
+            dropCell.Position = new Coordinate2D(pos);
+        }
 
         public void MakeDecision(RealtimeSimulation simulation)
         {
@@ -61,6 +49,8 @@ namespace CellSimulation
             var otherSmarts = others.OfType<SmartCell>();
             var otherDummys = others.Except(otherSmarts);
             var isAnyBiggerThanMe = others.Count(x => x.Mass > Mass) > 0;
+            var otherBiggest = others.OrderByDescending(x => x.Mass).FirstOrDefault();
+            var otherSmallest = others.OrderBy(x => x.Mass).FirstOrDefault(); ;
             var otherSmalls = others.Where(x => x.Mass < Mass && x.Mass > Mass / minMassDivisor).OrderByDescending(x => x.Mass);
             var biggestOfOtherSmalls = otherSmalls.FirstOrDefault();
             var otherBigs = others.Where(x => x.Mass > Mass).OrderByDescending(x => x.Mass);
@@ -68,6 +58,9 @@ namespace CellSimulation
             var nearestSmall = others.Where(x => x.Mass < Mass && x.Mass > Mass / minMassDivisor)
                                      .OrderBy(x => Center.Subtract(x.Center).Length)
                                      .ThenByDescending(x => x.Mass).FirstOrDefault();
+            var slowestOfOtherSmalls = otherSmalls.OrderBy(x => x.Velocity.Length).FirstOrDefault();
+            var fastestOfOtherSmalls = otherSmalls.OrderByDescending(x => x.Velocity.Length).FirstOrDefault();
+
             switch (Character)
             {
                 case CharacterType.CatchSmall:
@@ -80,9 +73,7 @@ namespace CellSimulation
                             var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                             dropCell.GenerateRadiusFromMass();
                             if (dropCell.Radius < 1 || Radius < 1) return;
-                            var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                            var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                            dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                            caculateDropCellPosition(dropCell);
                             DropObject(dropCell);
                             simulation.AddCell(dropCell);
                         }
@@ -97,9 +88,7 @@ namespace CellSimulation
                         var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                         dropCell.GenerateRadiusFromMass();
                         if (dropCell.Radius < 1 || Radius < 1) return;
-                        var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                        var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                        dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                        caculateDropCellPosition(dropCell);
                         DropObject(dropCell);
                         simulation.AddCell(dropCell);
                     }
@@ -114,9 +103,7 @@ namespace CellSimulation
                             var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                             dropCell.GenerateRadiusFromMass();
                             if (dropCell.Radius < 1 || Radius < 1) return;
-                            var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                            var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                            dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                            caculateDropCellPosition(dropCell);
                             DropObject(dropCell);
                             simulation.AddCell(dropCell);
                         }
@@ -125,24 +112,23 @@ namespace CellSimulation
                 case CharacterType.NoSpeed:
                     {
                         if (Velocity.Length < minVelocityThresold) return;
-                        var vector = this.Velocity;
-                        var uVector = vector.UnitVector;
-                        var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
+                        var noSpeedMassDivider = 1 / massDivisor;
+                        var v1 = this.Velocity;
+                        var v2 = v1 * noSpeedMassDivider;
+                        var m2 = Mass / noSpeedMassDivider;
+                        var dropCell = new Cell() { Mass = m2, Velocity = v2 };
                         dropCell.GenerateRadiusFromMass();
                         if (dropCell.Radius < 1 || Radius < 1) return;
-                        var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                        var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                        dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                        caculateDropCellPosition(dropCell);
                         DropObject(dropCell);
                         simulation.AddCell(dropCell);
-
                     }
                     break;
                 case CharacterType.CatchSmallAndEvadeBig:
                     {
-                        if (SubCharacter == CharacterType.CatchSmall)
+                        if (subCharacter == CharacterType.CatchSmall)
                         {
-                            SubCharacter = CharacterType.EvadeBig;
+                            subCharacter = CharacterType.EvadeBig;
                             if (!isAnyBiggerThanMe) return;
                             if (biggestOfOtherSmalls != null)
                             {
@@ -151,16 +137,14 @@ namespace CellSimulation
                                 var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                                 dropCell.GenerateRadiusFromMass();
                                 if (dropCell.Radius < 1 || Radius < 1) return;
-                                var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                                var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                                dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                                caculateDropCellPosition(dropCell);
                                 DropObject(dropCell);
                                 simulation.AddCell(dropCell);
                             }
                         }
                         else
                         {
-                            SubCharacter = CharacterType.CatchSmall;
+                            subCharacter = CharacterType.CatchSmall;
                             if (!isAnyBiggerThanMe) return;
                             if (nearestBig == null) return;
                             var vector = nearestBig.Position - this.Position;
@@ -168,9 +152,7 @@ namespace CellSimulation
                             var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                             dropCell.GenerateRadiusFromMass();
                             if (dropCell.Radius < 1 || Radius < 1) return;
-                            var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                            var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                            dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                            caculateDropCellPosition(dropCell);
                             DropObject(dropCell);
                             simulation.AddCell(dropCell);
                         }
@@ -178,9 +160,9 @@ namespace CellSimulation
                     break;
                 case CharacterType.CatchNearestAndEvadeBig:
                     {
-                        if (SubCharacter == CharacterType.CatchNearest)
+                        if (subCharacter == CharacterType.CatchNearest)
                         {
-                            SubCharacter = CharacterType.EvadeBig;
+                            subCharacter = CharacterType.EvadeBig;
                             if (nearestSmall != null)
                             {
                                 if (!isAnyBiggerThanMe) return;
@@ -189,16 +171,14 @@ namespace CellSimulation
                                 var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                                 dropCell.GenerateRadiusFromMass();
                                 if (dropCell.Radius < 1 || Radius < 1) return;
-                                var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                                var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                                dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                                caculateDropCellPosition(dropCell);
                                 DropObject(dropCell);
                                 simulation.AddCell(dropCell);
                             }
                         }
-                        else 
+                        else
                         {
-                            SubCharacter = CharacterType.CatchNearest;
+                            subCharacter = CharacterType.CatchNearest;
                             if (!isAnyBiggerThanMe) return;
                             if (nearestBig == null) return;
                             var vector = nearestBig.Position - this.Position;
@@ -206,9 +186,55 @@ namespace CellSimulation
                             var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                             dropCell.GenerateRadiusFromMass();
                             if (dropCell.Radius < 1 || Radius < 1) return;
-                            var posX = dropCell.Velocity.X > 0 ? Position.X + Radius + 1 : Position.X - dropCell.Radius - 1;
-                            var posY = dropCell.Velocity.Y > 0 ? Position.Y + Radius + 1 : Position.Y - dropCell.Radius - 1;
-                            dropCell.Position = new Coordinate2D(new Vector2D(posX, posY));
+                            caculateDropCellPosition(dropCell);
+                            DropObject(dropCell);
+                            simulation.AddCell(dropCell);
+                        }
+                    }
+                    break;
+                case CharacterType.CatchSlow:
+                    {
+                        if (!isAnyBiggerThanMe) return;
+                        if (slowestOfOtherSmalls != null)
+                        {
+                            var vector = slowestOfOtherSmalls.Position - this.Position;
+                            var uVector = vector.UnitVector * -1;
+                            var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
+                            dropCell.GenerateRadiusFromMass();
+                            if (dropCell.Radius < 1 || Radius < 1) return;
+                            caculateDropCellPosition(dropCell);
+                            DropObject(dropCell);
+                            simulation.AddCell(dropCell);
+                        }
+                    }
+                    break;
+                case CharacterType.CatchFast:
+                    {
+                        if (!isAnyBiggerThanMe) return;
+                        if (fastestOfOtherSmalls != null)
+                        {
+                            var vector = fastestOfOtherSmalls.Position - this.Position;
+                            var uVector = vector.UnitVector * -1;
+                            var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
+                            dropCell.GenerateRadiusFromMass();
+                            if (dropCell.Radius < 1 || Radius < 1) return;
+                            caculateDropCellPosition(dropCell);
+                            DropObject(dropCell);
+                            simulation.AddCell(dropCell);
+                        }
+                    }
+                    break;
+                case CharacterType.FollowBig:
+                    {
+                        if (!isAnyBiggerThanMe) return;
+                        if (otherBiggest != null)
+                        {
+                            var vector = otherBiggest.Position - this.Position;
+                            var uVector = vector.UnitVector * ((vector.Length > otherBiggest.Radius * 2) ? -1 : 1);
+                            var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
+                            dropCell.GenerateRadiusFromMass();
+                            if (dropCell.Radius < 1 || Radius < 1) return;
+                            caculateDropCellPosition(dropCell);
                             DropObject(dropCell);
                             simulation.AddCell(dropCell);
                         }
@@ -222,5 +248,10 @@ namespace CellSimulation
         public override int[] RGB() { return new int[] { 0, 255, 0 }; }
 
         public override string CharacterStr { get { return Enum.GetName(typeof(CharacterType), Character); } }
+
+        public new SmartCell Clone()
+        {
+            return (SmartCell)base.Clone();
+        }
     }
 }

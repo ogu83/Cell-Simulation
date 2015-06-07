@@ -6,15 +6,23 @@ using System.Windows.Controls;
 using System.Windows.Graphics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Threading;
+using System.Threading;
 
 namespace CellSimulation
 {
     public partial class MainPage : UserControl
     {
+        private const int _memoryTimerInterval = 100;
+
         private float aspectRatio = 1f;
+        private Simulation _memorySimulation;
         private RealtimeSimulation _simulation;
         private SpriteBatch _spriteBatch;
         private GraphicsDevice _graphicsDevice;
+        private bool _playingMemory = false;
+        private DispatcherTimer _memoryPlayTimer;
+        private int _cycleIndex = 0;
 
         public MainPage()
         {
@@ -22,6 +30,20 @@ namespace CellSimulation
 
             comboFilter.ItemsSource = Enum.GetNames(typeof(Cell.FilterType));
             comboFilter.SelectedIndex = 0;
+
+            _memoryPlayTimer = new DispatcherTimer();
+            _memoryPlayTimer.Interval = TimeSpan.FromMilliseconds(_memoryTimerInterval);
+            _memoryPlayTimer.Tick += _memoryPlayTimer_Tick;
+        }
+
+        private void enableButtons(bool isEnabled = true)
+        {
+            foreach (var c in grdCommands.Children)
+            {
+                var control = c as Control;
+                if (control != null)
+                    control.IsEnabled = isEnabled;
+            }
         }
 
         private void fillUniverseProperties(RealtimeSimulation simulation)
@@ -78,11 +100,10 @@ namespace CellSimulation
 
         private void UserControl_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_simulation.CancelationToken)
-                return;
             if (_simulation == null)
                 return;
-
+            if (_simulation.CancelationToken)
+                return;
             switch (e.Key)
             {
                 case System.Windows.Input.Key.Left:
@@ -171,6 +192,84 @@ namespace CellSimulation
             btnStartStop.Content = _simulation.Paused ? "Start" : "Pause";
         }
 
+        private void btnStartMemory_Click(object sender, RoutedEventArgs e)
+        {
+            if (_memorySimulation == null)
+                return;
+
+            sldMemory.Maximum = _memorySimulation.Cycles.Count;
+
+            if (_playingMemory)
+            {
+                (sender as Button).Content = "Start Memory";
+                _memoryPlayTimer.Stop();
+                _playingMemory = false;
+            }
+            else
+            {
+                (sender as Button).Content = "Stop Memory";
+                _memoryPlayTimer.Start();
+                _playingMemory = true;
+            }
+
+            fillCellsProperties(_simulation);
+            fillUniverseProperties(_simulation);
+        }
+
+        private void _memoryPlayTimer_Tick(object sender, EventArgs e)
+        {
+            if (_memorySimulation == null)
+                return;
+
+            var cycleIndex = (int)sldMemory.Value;
+            if (cycleIndex < _memorySimulation.Cycles.Count)
+            {
+                cycleIndex++;
+                sldMemory.Value = cycleIndex;
+            }
+        }
+
+        private void sldMemory_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            _cycleIndex = (int)sldMemory.Value;
+            if (_memorySimulation == null) return;
+            if (_cycleIndex < _memorySimulation.Cycles.Count)
+            {
+                if (_simulation == null)
+                    _simulation = new RealtimeSimulation();
+                _simulation.Paused = true;
+                _simulation.Cycle = _cycleIndex;
+                _simulation.CancelationToken = true;
+                var cycle = _memorySimulation.Cycles[_cycleIndex];
+                _simulation.Cells.RemoveAll(x => !cycle.Cells.Contains(x));
+                foreach (var cCell in cycle.Cells)
+                {
+                    var sCell = _simulation.Cells.SingleOrDefault(x => x.Equals(cCell));
+                    if (sCell != null)
+                    {
+                        sCell.Position = cCell.Position;
+                        sCell.Radius = cCell.Radius;
+                        sCell.Mass = cCell.Mass;
+                        sCell.Velocity = cCell.Velocity;
+                        sCell.Accerelation = cCell.Accerelation;
+                        sCell.Texture = null;
+                        sCell.SelectedTexture = null;
+                    }
+                    else
+                    {
+                        _simulation.Cells.Add(cCell);
+                    }
+                };
+                _simulation.CancelationToken = false;
+
+                if (!_memoryPlayTimer.IsEnabled)
+                {
+                    fillCellsProperties(_simulation);
+                    fillUniverseProperties(_simulation);
+                }
+            }
+        }
+
         private void btnGenerate_Click(object sender, RoutedEventArgs e)
         {
             var generateDialog = new GenerateSimulationDialog();
@@ -183,17 +282,58 @@ namespace CellSimulation
             if (d != null)
                 if (d.DialogResult.GetValueOrDefault())
                 {
-                    _simulation = RealtimeSimulation.GenerateSimulation(
-                        d.StopWhenCompleted, d.TotalCycle,
-                        drawingSurface.ActualWidth, drawingSurface.ActualHeight,
-                        d.DummyCellCount, d.MaxVX, d.MaxVY, d.MaxRadius, d.MinRadius,
-                        d.SmartCellCount, d.SMaxVX, d.SMaxVY, d.SMaxRadius, d.SMinRadius
-                    );
-                    _simulation.OnCollision += _simulation_OnCollision;
-                    _simulation.OnObjectAdded += _simulation_OnObjectAdded;
-                    fillUniverseProperties(_simulation);
-                    fillCellsProperties(_simulation);
+                    switch (d.RunIn)
+                    {
+                        case GenerateSimulationDialog.RunInEnum.Screen:
+                            _simulation = RealtimeSimulation.GenerateSimulation(
+                                d.StopWhenCompleted, d.TotalCycle,
+                                drawingSurface.ActualWidth, drawingSurface.ActualHeight,
+                                d.DummyCellCount, d.MaxVX, d.MaxVY, d.MaxRadius, d.MinRadius,
+                                d.SmartCellCount, d.SMaxVX, d.SMaxVY, d.SMaxRadius, d.SMinRadius
+                            );
+                            _simulation.OnCollision += _simulation_OnCollision;
+                            _simulation.OnObjectAdded += _simulation_OnObjectAdded;
+                            fillUniverseProperties(_simulation);
+                            fillCellsProperties(_simulation);
+                            break;
+                        case GenerateSimulationDialog.RunInEnum.Memory:
+                            var rSimulation = RealtimeSimulation.GenerateSimulation(
+                                d.StopWhenCompleted, d.TotalCycle,
+                                drawingSurface.ActualWidth, drawingSurface.ActualHeight,
+                                d.DummyCellCount, d.MaxVX, d.MaxVY, d.MaxRadius, d.MinRadius,
+                                d.SmartCellCount, d.SMaxVX, d.SMaxVY, d.SMaxRadius, d.SMinRadius
+                            );
+                            _memorySimulation = new Simulation(rSimulation);
+                            _memorySimulation.OnNextCycle += _memorySimulation_OnNextCycle;
+                            _memorySimulation.OnCompleted += _memorySimulation_OnCompleted;
+                            _memorySimulation.StartAsync();
+                            enableButtons(false);
+                            break;
+                        case GenerateSimulationDialog.RunInEnum.Server:
+                            break;
+                        default:
+                            break;
+                    }
                 }
+        }
+
+        private void _memorySimulation_OnCompleted(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                enableButtons();
+                MessageBox.Show("Memory Simulation Completed");
+            }));
+        }
+        private void _memorySimulation_OnNextCycle(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var sim = (sender as Simulation);
+                barMemory.Minimum = 0;
+                barMemory.Maximum = sim.TotalCycle;
+                barMemory.Value = sim.Cycles.Count;
+            }));
         }
 
         private void drawingSurface_Loaded(object sender, RoutedEventArgs e)
@@ -204,7 +344,6 @@ namespace CellSimulation
             else
                 MessageBox.Show("Please allow 3D Graphics from Silverlight Properties (opens with right click)", "3D Rendering Disabled", MessageBoxButton.OK);
         }
-
         private void drawingSurface_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
         {
             if (_simulation == null)
@@ -212,41 +351,28 @@ namespace CellSimulation
             _simulation.Boundry = new Rect(0, 0, drawingSurface.ActualWidth, ActualHeight);
             aspectRatio = (float)(drawingSurface.ActualWidth / drawingSurface.ActualHeight);
         }
-
         private void drawingSurface_Draw(object sender, DrawEventArgs e)
         {
             _graphicsDevice.Clear(new Color(0f, 0f, 0f, 1.0f));
             _graphicsDevice.RasterizerState = RasterizerState.CullNone;
             if (_simulation != null)
             {
-                if (_simulation.CancelationToken)
-                    return;
-
-                //_simulation.CancelationToken = true;
-                _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
-                foreach (var c in _simulation.Cells)
+                while (_simulation.CancelationToken) { Thread.Sleep(_memoryTimerInterval); }
+                if (!_simulation.CancelationToken)
                 {
-                    if (c.Texture == null)
-                        c.Texture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius, new Color(c.RGB()[0], c.RGB()[1], c.RGB()[2]));
-                    if (c.SelectedTexture == null)
-                        c.SelectedTexture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius + 10, new Color(255, 0, 0));
-
-                    if (_simulation.Selected == c)
-                        if (c.SelectedTexture != null)
-                            _spriteBatch.Draw(c.SelectedTexture as Texture2D, new Vector2((float)c.Position.X - 5, (float)c.Position.Y - 5), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
-                    if (c.Texture != null)
-                        _spriteBatch.Draw(c.Texture as Texture2D, new Vector2((float)c.Position.X, (float)c.Position.Y), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
-
-                    //var font = XNAHelper.CreateSpriteFont();
-                    //XNAHelper.DrawString(_spriteBatch, font, c.Id.ToString(),
-                    //    new Rectangle((int)c.Position.X, (int)c.Position.Y, (int)c.Radius + (int)c.Position.X, (int)c.Radius + (int)c.Position.Y), XNAHelper.SpriteStringAlignment.Center,
-                    //    new Color(0, 0, 0));
+                    _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+                    for (int i = 0; i < _simulation.Cells.Count; i++)
+                    {
+                        if (i < _simulation.Cells.Count)
+                        {
+                            var c = _simulation.Cells[i];
+                            drawCell(c);
+                        }
+                    }
+                    _simulation.ExecuteNextCycle();
+                    _spriteBatch.End();
                 }
-                _spriteBatch.End();
-                _simulation.ExecuteNextCycle();
-                //_simulation.CancelationToken = false;
             }
-
 
             //VertexPositionNormalTexture[] vertices = new VertexPositionNormalTexture[]{
             //    new VertexPositionNormalTexture(new Vector3(-1, -1, 0),
@@ -278,6 +404,29 @@ namespace CellSimulation
             //basicEffect.CurrentTechnique.Passes[0].Apply();
             //g.DrawPrimitives(PrimitiveType.TriangleList, 0, 1);
             e.InvalidateSurface();
+        }
+        private void drawCell(Cell c)
+        {
+            if (c != null)
+            {
+                if (c.Texture == null)
+                    c.Texture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius, new Color(c.RGB()[0], c.RGB()[1], c.RGB()[2]));
+                if (c.SelectedTexture == null)
+                    c.SelectedTexture = XNAHelper.CreateCircleTexture(_graphicsDevice, (int)c.Radius + 10, new Color(255, 0, 0));
+
+                if (_simulation != null)
+                    if (_simulation.Selected == c)
+                        if (c.SelectedTexture != null)
+                            _spriteBatch.Draw(c.SelectedTexture as Texture2D, new Vector2((float)c.Position.X - 5, (float)c.Position.Y - 5), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
+
+                if (c.Texture != null)
+                    _spriteBatch.Draw(c.Texture as Texture2D, new Vector2((float)c.Position.X, (float)c.Position.Y), null, Color.White, 0, new Vector2(0, 0), aspectRatio, SpriteEffects.None, 0);
+
+                //var font = XNAHelper.CreateSpriteFont();
+                //XNAHelper.DrawString(_spriteBatch, font, c.Id.ToString(),
+                //    new Rectangle((int)c.Position.X, (int)c.Position.Y, (int)c.Radius + (int)c.Position.X, (int)c.Radius + (int)c.Position.Y), XNAHelper.SpriteStringAlignment.Center,
+                //    new Color(0, 0, 0));
+            }
         }
     }
 }
