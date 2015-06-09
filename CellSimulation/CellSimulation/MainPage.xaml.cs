@@ -18,8 +18,11 @@ namespace CellSimulation
         private float aspectRatio = 1f;
         private Simulation _memorySimulation;
         private RealtimeSimulation _simulation;
+        private SimulationBatchPlayer _simulationBatchPlayer;
+
         private SpriteBatch _spriteBatch;
         private GraphicsDevice _graphicsDevice;
+
         private bool _playingMemory = false;
         private DispatcherTimer _memoryPlayTimer;
         private int _cycleIndex = 0;
@@ -216,6 +219,12 @@ namespace CellSimulation
             fillUniverseProperties(_simulation);
         }
 
+        private void btnSimulationBatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (_simulationBatchPlayer != null)
+                _simulationBatchPlayer.Show();
+        }
+
         private void _memoryPlayTimer_Tick(object sender, EventArgs e)
         {
             if (_memorySimulation == null)
@@ -309,11 +318,42 @@ namespace CellSimulation
                             _memorySimulation.StartAsync();
                             enableButtons(false);
                             break;
+                        case GenerateSimulationDialog.RunInEnum.MemoryBatch:
+                            var simulationBatch = new SimulationBatch();
+                            for (int i = 0; i < d.TotalBatch; i++)
+                            {
+                                var rSim = RealtimeSimulation.GenerateSimulation(
+                                    d.StopWhenCompleted, d.TotalCycle,
+                                    drawingSurface.ActualWidth, drawingSurface.ActualHeight,
+                                    d.DummyCellCount, d.MaxVX, d.MaxVY, d.MaxRadius, d.MinRadius,
+                                    d.SmartCellCount, d.SMaxVX, d.SMaxVY, d.SMaxRadius, d.SMinRadius
+                                );
+                                var sim = new Simulation(rSim);
+                                simulationBatch.Add(sim);
+                            }
+                            var batchPlayer = new SimulationBatchPlayer(simulationBatch);
+                            batchPlayer.Closed += batchPlayer_Closed;
+                            batchPlayer.Show();
+                            _simulationBatchPlayer = batchPlayer;
+                            break;
                         case GenerateSimulationDialog.RunInEnum.Server:
                             break;
                         default:
                             break;
                     }
+                }
+        }
+
+        private void batchPlayer_Closed(object sender, EventArgs e)
+        {
+            if (_simulationBatchPlayer != null)
+                if (_simulationBatchPlayer.SimulationBatch.SelectedSimulation != null)
+                {
+                    _memorySimulation = _simulationBatchPlayer.SimulationBatch.SelectedSimulation;
+                    _memorySimulation.OnNextCycle += _memorySimulation_OnNextCycle;
+                    _memorySimulation.OnCompleted += _memorySimulation_OnCompleted;
+                    enableButtons();
+                    MessageBox.Show("Memory Simulation Selected");
                 }
         }
 
@@ -428,5 +468,7 @@ namespace CellSimulation
                 //    new Color(0, 0, 0));
             }
         }
+
+
     }
 }

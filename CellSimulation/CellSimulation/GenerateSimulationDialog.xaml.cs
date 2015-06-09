@@ -7,7 +7,7 @@ namespace CellSimulation
 {
     public partial class GenerateSimulationDialog : ChildWindow, INotifyPropertyChanged
     {
-        public enum RunInEnum { Screen, Memory, Server }
+        public enum RunInEnum { Screen, Memory, MemoryBatch, Server }
 
         public GenerateSimulationDialog()
         {
@@ -69,6 +69,21 @@ namespace CellSimulation
         }
         private int _TotalCycle;
         public const string TotalCyclePropertyName = "TotalCycle";
+
+        public int TotalBatch
+        {
+            get { return _TotalBatch; }
+            set
+            {
+                if (_TotalBatch != value)
+                {
+                    _TotalBatch = value;
+                    OnPropertyChanged(TotalBatchPropertyName);
+                }
+            }
+        }
+        private int _TotalBatch;
+        public const string TotalBatchPropertyName = "TotalBatch";
 
         public RunInEnum RunIn { get; set; }
         #endregion

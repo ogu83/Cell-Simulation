@@ -22,8 +22,10 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Margin="5">
-                            <TextBlock Text="TotalCycle" />
+                            <TextBlock Text="Total Cycle" />
                             <TextBox Text="{Binding TotalCycle,Mode=TwoWay}" />
+                            <TextBlock Text="Total Simulation In Batch" />
+                            <TextBox Text="{Binding TotalBatch,Mode=TwoWay}" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Margin="5">
                             <TextBlock Text="Conditions" />
@@ -33,7 +35,8 @@
                             <TextBlock Text="Run In" />
                             <RadioButton GroupName="g1" Margin="2" Content="Screen" x:Name="chkRunInScreen" Tag="0" Checked="chkRunInChecked" IsChecked="true"/>
                             <RadioButton GroupName="g1" Margin="2" Content="Memory" x:Name="chkRunInMemory" Tag="1" Checked="chkRunInChecked" />
-                            <RadioButton GroupName="g1" Margin="2" Content="Server" x:Name="chkRunInServer" Tag="2" Checked="chkRunInChecked" />
+                            <RadioButton GroupName="g1" Margin="2" Content="Memory Batch" x:Name="chkRunInMemoryBatch" Tag="2" Checked="chkRunInChecked" />
+                            <RadioButton GroupName="g1" Margin="2" Content="Server" x:Name="chkRunInServer" Tag="3" Checked="chkRunInChecked" />
                         </StackPanel>
                     </Grid>                    
                 </controls:TabItem>

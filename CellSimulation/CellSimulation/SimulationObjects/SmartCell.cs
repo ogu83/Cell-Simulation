@@ -21,6 +21,7 @@ namespace CellSimulation
             CatchSlow,
             CatchFast,
             FollowBig,
+            Matador,
         }
 
         public SmartCell() { }
@@ -231,6 +232,23 @@ namespace CellSimulation
                         {
                             var vector = otherBiggest.Position - this.Position;
                             var uVector = vector.UnitVector * ((vector.Length > otherBiggest.Radius * 2) ? -1 : 1);
+                            var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
+                            dropCell.GenerateRadiusFromMass();
+                            if (dropCell.Radius < 1 || Radius < 1) return;
+                            caculateDropCellPosition(dropCell);
+                            DropObject(dropCell);
+                            simulation.AddCell(dropCell);
+                        }
+                    }
+                    break;
+                case CharacterType.Matador:
+                    {
+                        if (!isAnyBiggerThanMe) return;
+                        if (nearestBig != null)
+                        {
+                            if (nearestBig.Velocity.Length == 0) return;
+                            var vector = nearestBig.Velocity.UnitVector;
+                            var uVector = new Vector2D(vector.Y, vector.X);
                             var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                             dropCell.GenerateRadiusFromMass();
                             if (dropCell.Radius < 1 || Radius < 1) return;

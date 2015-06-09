@@ -1,0 +1,70 @@
+﻿<controls:ChildWindow xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk"  x:Class="CellSimulation.SimulationBatchPlayer"
+           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+           xmlns:controls="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls"
+           Width="800" Height="600" 
+           Title="SimulationBatchPlayer">
+    <Grid x:Name="LayoutRoot" Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Id" />
+                <TextBlock Grid.Column="1" Text="TotalMass" />
+                <TextBlock Grid.Column="2" Text="Cells" />
+                <TextBlock Grid.Column="3" Text="SCells" />
+                <TextBlock Grid.Column="4" Text="WinnerMass" />
+                <TextBlock Grid.Column="5" Text="WinnerCharacter ^" />
+                <TextBlock Grid.Column="6" Text="Cycle" />
+                <TextBlock Grid.Column="7" Text="Elapsed" />
+            </Grid>
+            <ListBox Grid.Row="1" x:Name="lstSimulations" ItemsSource="{Binding MassOrderedSimulations}" SelectedItem="{Binding SelectedSimulation, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="0" />
+                            <TextBlock Grid.Column="1" Text="{Binding TotalMass, StringFormat=\{0:F4\}}" />
+                            <TextBlock Grid.Column="2" Text="{Binding CellCount, StringFormat=\{0:F0\}}" />
+                            <TextBlock Grid.Column="3" Text="{Binding SmartCellCount, StringFormat=\{0:F0\}}" />
+                            <TextBlock Grid.Column="4" Text="{Binding WinnerMass, StringFormat=\{0:F4\}}" />
+                            <TextBlock Grid.Column="5" Text="{Binding WinnerCharacter}" />
+                            <TextBlock Grid.Column="6" Text="{Binding CycleCount, StringFormat=\{0:F0\}}" />
+                            <TextBlock Grid.Column="7" Text="{Binding ElapsedTimeStr}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+
+        <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click" Width="75" Height="23" HorizontalAlignment="Right" Margin="0,12,0,0" Grid.Row="1" />
+        <Button x:Name="OKButton" Content="OK" Click="OKButton_Click" Width="75" Height="23" HorizontalAlignment="Right" Margin="0,12,79,0" Grid.Row="1" />
+    </Grid>
+</controls:ChildWindow>
+    
