@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CellSimulation.Analitycs;
+using System;
 using System.Linq;
+using System.Windows;
 
 namespace CellSimulation
 {
@@ -246,9 +248,28 @@ namespace CellSimulation
                         if (!isAnyBiggerThanMe) return;
                         if (nearestBig != null)
                         {
-                            if (nearestBig.Velocity.Length == 0) return;
-                            var vector = nearestBig.Velocity.UnitVector;
-                            var uVector = new Vector2D(vector.Y, vector.X);
+                            Point? ip1 = null;
+                            if (nearestBig.Velocity.Length > 0)
+                            {
+                                ip1 = Geometry.IntersectionPoint(nearestBig.Center.Point, Diagonale, nearestBig.Velocity.X, nearestBig.Velocity.Y);
+                                if (ip1 == null)
+                                    ip1 = Geometry.IntersectionPoint(nearestBig.Center.Point, InverseDiagonale, nearestBig.Velocity.X, nearestBig.Velocity.Y);
+                            }
+
+                            Point? ip2 = null;
+                            if (Velocity.Length > 0)
+                            {
+                                ip2 = Geometry.IntersectionPoint(Center.Point, nearestBig.Diagonale, Velocity.X, Velocity.Y);
+                                if (ip2 == null)
+                                    ip2 = Geometry.IntersectionPoint(Center.Point, nearestBig.InverseDiagonale, Velocity.X, Velocity.Y);
+                            }
+
+                            if (ip2 == null && ip1 == null) return;
+
+                            var uVector = new Vector2D(nearestBig.Velocity.Y, nearestBig.Velocity.X).UnitVector;
+                            if (ip1 == null)
+                                uVector = new Vector2D(Velocity.Y, Velocity.X).UnitVector;
+
                             var dropCell = new Cell() { Mass = this.Mass * massDivisor, Velocity = uVector * velocityMultiplier };
                             dropCell.GenerateRadiusFromMass();
                             if (dropCell.Radius < 1 || Radius < 1) return;

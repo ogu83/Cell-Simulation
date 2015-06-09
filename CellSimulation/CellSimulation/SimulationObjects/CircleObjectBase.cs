@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using CellSimulation.Analitycs;
 
 namespace CellSimulation
 {
@@ -16,6 +17,9 @@ namespace CellSimulation
         public double Radius { get; set; }
 
         public Coordinate2D Center { get { return new Coordinate2D() { X = Position.X + Radius / 2, Y = Position.Y + Radius / 2 }; } }
+
+        public Line Diagonale { get { return new Line { X1 = Position.X, Y1 = Position.Y, X2 = Position.X + Radius, Y2 = Position.Y + Radius }; } }
+        public Line InverseDiagonale { get { return new Line { X1 = Position.X + Radius, Y1 = Position.Y, X2 = Position.X, Y2 = Position.Y + Radius }; } }
 
         public void GenerateMassFromRadius()
         {
