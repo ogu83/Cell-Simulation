@@ -14,18 +14,18 @@ namespace CellSimulation
             InitializeComponent();
             DataContext = this;
 
-            TotalCycle = 5000;
-            StopWhenCompleted = true;
+            TotalCycle = 0;
+            StopWhenCompleted = false;
 
-            DummyCellCount = 90;
-            MinRadius = 4;
-            MaxRadius = 20;
-            MaxVX = 0;
-            MaxVY = 0;
+            DummyCellCount = 1000;
+            MinRadius = 5;
+            MaxRadius = 10;
+            MaxVX = 30;
+            MaxVY = 30;
 
-            SmartCellCount = 90;
-            SMinRadius = 30;
-            SMaxRadius = 30;
+            SmartCellCount = 3;
+            SMinRadius = 60;
+            SMaxRadius = 60;
             SMaxVX = 0;
             SMaxVY = 0;
         }

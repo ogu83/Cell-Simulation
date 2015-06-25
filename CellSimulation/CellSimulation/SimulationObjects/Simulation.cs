@@ -32,7 +32,9 @@ namespace CellSimulation
             {
                 if (Cycles != null)
                     if (Cycles.Count > 0)
-                        return Cycles.Last().Cells.OrderByDescending(x => x.Mass).FirstOrDefault();
+                        if (Cycles.Last() != null)
+                            if (Cycles.Last().Cells != null)
+                                return Cycles.Last().Cells.OrderByDescending(x => x.Mass).FirstOrDefault();
 
                 return null;
             }
@@ -74,8 +76,9 @@ namespace CellSimulation
             {
                 if (Cycles != null)
                     if (Cycles.Count > 0)
-                        if (Cycles.Last().Cells != null)
-                            return Cycles.Last().Cells.Count;
+                        if (Cycles.Last() != null)
+                            if (Cycles.Last().Cells != null)
+                                return Cycles.Last().Cells.Count;
 
                 return 0;
             }
@@ -147,7 +150,6 @@ namespace CellSimulation
             if (OnCollision != null)
                 OnCollision(sender, cell1, cell2);
         }
-
 
         #region INotifyPropertyChanged
         private void propertiesChanged()

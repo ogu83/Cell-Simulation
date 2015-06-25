@@ -14,7 +14,7 @@ namespace CellSimulation
         }
         public double X { get; set; }
         public double Y { get; set; }
-        public double Length { get { return Math.Sqrt(Math.Pow(X, 2) + Math.Pow(Y, 2)); } }
+        public double Length { get { return Math.Sqrt(X * X + Y * Y); } }
         public Vector2D UnitVector { get { return new Vector2D(X / Length, Y / Length); } }
 
         public Vector2D Subtract(Vector2D v) { return new Vector2D(X - v.X, Y - v.Y); }

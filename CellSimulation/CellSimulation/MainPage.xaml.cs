@@ -468,7 +468,5 @@ namespace CellSimulation
                 //    new Color(0, 0, 0));
             }
         }
-
-
     }
 }

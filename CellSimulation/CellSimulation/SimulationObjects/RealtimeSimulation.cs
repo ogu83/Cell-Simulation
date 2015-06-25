@@ -168,7 +168,8 @@ namespace CellSimulation
                 };
                 myCell.GenerateMassFromRadius();
                 var maxI = Enum.GetValues(typeof(SmartCell.CharacterType)).Cast<int>().Max() + 1;
-                myCell.Character = (SmartCell.CharacterType)_rnd.Next(0, maxI);
+                var minI = (int)SmartCell.CharacterType.Matador;
+                myCell.Character = (SmartCell.CharacterType)_rnd.Next(minI, maxI);
                 AddCell(myCell);
             }
             CancelationToken = false;
@@ -209,14 +210,19 @@ namespace CellSimulation
         {
             bool anyCollision = false;
             for (int i = 0; i < Cells.Count; i++)
+            {
                 for (int j = i + 1; j < Cells.Count; j++)
+                {
                     if (!Cells[i].IsExhausted && !Cells[j].IsExhausted && Cells[i].IsColided(Cells[j]))
                     {
                         if (OnCollision != null)
                             OnCollision(this, Cells[i], Cells[j]);
                         Cell.CollisionResult(Cells[i], Cells[j]);
                         anyCollision = true;
+                        break;
                     }
+                }
+            }
 
             if (anyCollision)
                 Cells = Cells.Where(c => !c.IsExhausted).ToList();

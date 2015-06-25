@@ -16,14 +16,14 @@ namespace CellSimulation
 
         public double Radius { get; set; }
 
-        public Coordinate2D Center { get { return new Coordinate2D() { X = Position.X + Radius / 2, Y = Position.Y + Radius / 2 }; } }
+        public Coordinate2D Center { get { return new Coordinate2D() { X = Position.X + Radius * .5, Y = Position.Y + Radius * .5 }; } }
 
         public Line Diagonale { get { return new Line { X1 = Position.X, Y1 = Position.Y, X2 = Position.X + Radius, Y2 = Position.Y + Radius }; } }
         public Line InverseDiagonale { get { return new Line { X1 = Position.X + Radius, Y1 = Position.Y, X2 = Position.X, Y2 = Position.Y + Radius }; } }
 
         public void GenerateMassFromRadius()
         {
-            Mass = Math.PI * Math.Pow(Radius / 2, 2);
+            Mass = Math.PI * Radius * Radius * .25;
         }
         public void GenerateRadiusFromMass()
         {
@@ -32,9 +32,7 @@ namespace CellSimulation
 
         public bool IsColided(CircleObjectBase obj)
         {
-            var totalRadius = obj.Radius / 2 + Radius / 2;
-            var distance = Coordinate2D.Distance(obj.Center, Center);
-            return distance <= totalRadius;
+            return Coordinate2D.Distance(obj.Center, Center) <= (obj.Radius + Radius) * .5;
         }
 
         public override bool AddObject(Object2DBase obj)

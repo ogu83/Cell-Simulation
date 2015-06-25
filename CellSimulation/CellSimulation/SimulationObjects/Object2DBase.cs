@@ -16,7 +16,7 @@ namespace CellSimulation
         public Vector2D Accerelation { get; set; }
         public Coordinate2D Position { get; set; }
 
-        public double Energy { get { return .5 * Mass * Math.Pow(Velocity.Length, 2); } }
+        public double Energy { get { return .5 * Mass * Velocity.Length * Velocity.Length; } }
         public Vector2D Momentum { get { return Velocity * Mass; } }
 
         public virtual bool AddObject(Object2DBase obj)

@@ -21,17 +21,17 @@ namespace CellSimulation
 
         public Simulation SelectedSimulation
         {
-            get { return _SelectedSimulation; }
+            get { return _selectedSimulation; }
             set
             {
-                if (_SelectedSimulation != value)
+                if (_selectedSimulation != value)
                 {
-                    _SelectedSimulation = value;
+                    _selectedSimulation = value;
                     OnPropertyChanged(SelectedSimulationPropertyName);
                 }
             }
         }
-        private Simulation _SelectedSimulation;
+        private Simulation _selectedSimulation;
         public const string SelectedSimulationPropertyName = "SelectedSimulation";
 
         public void StartAsync()
