@@ -62,8 +62,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CellSimulationTestPage.aspx" />
-    <Content Include="CellSimulationTestPage.html" />
+    <Content Include="index.html" />
     <Content Include="ClientBin\CellSimulation.xap" />
     <Content Include="Silverlight.js" />
     <Content Include="Web.config" />
