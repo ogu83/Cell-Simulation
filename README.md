@@ -40,3 +40,5 @@ Every green ball are smart mass in the universe. The are dropping mass for movem
 follow me on twitter: twitter.com/oguzkoroglu
 my linked in profile : http://tr.linkedin.com/in/oguzkoroglu/
 my personal web site : http://oguzkoroglu.net/
+
+More details at https://cellsimulation.codeplex.com/
