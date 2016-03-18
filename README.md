@@ -26,20 +26,17 @@ The small ball will join to the big ball. Big eats small. The joint new ball's e
 At the and of the simulation the biggest mass will dominate the universe. If any ball reaches a mass bigger than the sum of all other objects (bigger than the half of the total universes mass) will dominate the universe.
 Every white balls are dummy mass in the universe.
 Every green ball are smart mass in the universe. The are dropping mass for movement in the universe according to their predefined tactics.
-Catch Small: Tries to catch smallest object in the universe
-Evade Big: Tries to evade biggest object in the universe
-No Speed: Tries to stay still in the universe.
-CatchNearest: Tries to catch nearest object which is smaller than himself.
-CatchSlow: Tries to catch slowest object which is smaller than himself.
-CatchFast: Tries to catch fastest object which is smaller than himself.
-CatchSmallAndEvadeBig: In one turn Catch Small and other turn evade big.
-CatchNearestAndEvadeBig: In one turn Catch Nearest and other turn evade big.
-FollowBig : Follow the biggest object without touching it.
-Matador : Evade big objects that coming towards it like a matador.
-CatchMomentum: Tries to catch object with highest momentum which is smaller than himself.
+- Catch Small: Tries to catch smallest object in the universe
+- Evade Big: Tries to evade biggest object in the universe
+- No Speed: Tries to stay still in the universe.
+- CatchNearest: Tries to catch nearest object which is smaller than himself.
+- CatchSlow: Tries to catch slowest object which is smaller than himself.
+- CatchFast: Tries to catch fastest object which is smaller than himself.
+- CatchSmallAndEvadeBig: In one turn Catch Small and other turn evade big.
+- CatchNearestAndEvadeBig: In one turn Catch Nearest and other turn evade big.- FollowBig : Follow the biggest object without touching it.
+- Matador : Evade big objects that coming towards it like a matador.
+- CatchMomentum: Tries to catch object with highest momentum which is smaller than himself.
 
 follow me on twitter: twitter.com/oguzkoroglu
-
 my linked in profile : http://tr.linkedin.com/in/oguzkoroglu/
-
 my personal web site : http://oguzkoroglu.net/
